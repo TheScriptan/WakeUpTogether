@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/login"
-        android:name="com.example.wakeuptogether.Login"
+        android:name="com.example.wakeuptogether.application.view.Login"
         android:label="Login"
         tools:layout="@layout/fragment_login">
         <action
@@ -22,13 +22,13 @@
     </fragment>
     <fragment
         android:id="@+id/register"
-        android:name="com.example.wakeuptogether.Register"
+        android:name="com.example.wakeuptogether.application.view.Register"
         android:label="Register"
         tools:layout="@layout/fragment_register" >
         <action
-            android:id="@+id/action_register_to_main"
+            android:id="@+id/action_register_to_nav_bottom"
             app:destination="@id/nav_bottom"
-            app:popUpTo="@+id/login"
+            app:popUpTo="@+id/register"
             app:popUpToInclusive="true" />
     </fragment>
     <navigation
@@ -37,7 +37,7 @@
         app:startDestination="@id/main">
         <fragment
             android:id="@+id/main"
-            android:name="com.example.wakeuptogether.Main"
+            android:name="com.example.wakeuptogether.application.view.Main"
             android:label="Wake Up Together"
             tools:layout="@layout/fragment_main">
             <action
@@ -49,12 +49,12 @@
         </fragment>
         <fragment
             android:id="@+id/userProfile"
-            android:name="com.example.wakeuptogether.UserProfile"
+            android:name="com.example.wakeuptogether.application.view.UserProfile"
             android:label="Wake Up Together"
             tools:layout="@layout/fragment_user_profile" />
         <fragment
             android:id="@+id/friendList"
-            android:name="com.example.wakeuptogether.FriendList"
+            android:name="com.example.wakeuptogether.application.view.FriendList"
             android:label="Wake Up Together"
             tools:layout="@layout/fragment_friend_list" />
         <action

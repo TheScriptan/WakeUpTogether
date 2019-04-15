@@ -1,9 +1,11 @@
-package com.example.wakeuptogether;
+package com.example.wakeuptogether.application.view;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
@@ -20,13 +22,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.wakeuptogether.R;
+import com.example.wakeuptogether.application.viewmodel.UserViewModel;
+import com.example.wakeuptogether.business.model.Customer;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
     boolean test = false;
+
     public static NavController navController;
     private AppBarConfiguration appBarConfiguration;
+
+    private UserViewModel userViewModel;
+
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.bottomNavigationView) BottomNavigationView bottomNavigationView;
 
@@ -46,6 +55,21 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(R.id.main, R.id.login, R.id.friendList, R.id.userProfile).build();
         NavigationUI.setupWithNavController(toolbar, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
+
+        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+
+        userViewModel.getCurrentCustomer().observe(this, new Observer<Customer>() {
+            @Override
+            public void onChanged(Customer customer) {
+                if(customer != null){
+                    if(navController.getCurrentDestination().getId() == R.id.login){
+                        navController.navigate(R.id.action_login_to_main);
+                    } else if(navController.getCurrentDestination().getId() == R.id.register){
+                        navController.navigate(R.id.action_register_to_nav_bottom);
+                    }
+                }
+            }
+        });
 
     }
 
@@ -91,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_logout:
                 navController.navigate(R.id.action_logout);
+                userViewModel.signOut();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
