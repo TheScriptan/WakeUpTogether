@@ -62,5 +62,13 @@
             app:destination="@id/login"
             app:popUpTo="@+id/nav_bottom"
             app:popUpToInclusive="true" />
+        <fragment
+            android:id="@+id/findFriend"
+            android:name="com.example.wakeuptogether.application.view.FindFriend"
+            android:label="Find your friend"
+            tools:layout="@layout/fragment_find_friend" />
+        <action
+            android:id="@+id/action_global_findFriend"
+            app:destination="@id/findFriend" />
     </navigation>
 </navigation>

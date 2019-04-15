@@ -98,10 +98,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem logoutItem = menu.findItem(R.id.action_logout);
+        MenuItem findFriendItem = menu.findItem(R.id.action_find_friend);
         if(test == true){
             logoutItem.setVisible(true);
+            findFriendItem.setVisible(true);
         } else {
             logoutItem.setVisible(false);
+            findFriendItem.setVisible(false);
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -117,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(R.id.action_logout);
                 userViewModel.signOut();
                 return true;
+            case R.id.action_find_friend:
+                navController.navigate(R.id.action_global_findFriend);
             default:
                 return super.onOptionsItemSelected(item);
         }

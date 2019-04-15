@@ -10,6 +10,11 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -24,12 +29,14 @@ public class FirestoreHelper {
     private CollectionReference userRef;
 
     private MutableLiveData<Customer> customerMutableLiveData;
+    private MutableLiveData<List<Customer>> findFriendsMutableLiveData;
 
 
     private FirestoreHelper(){
         db = FirebaseFirestore.getInstance();
         userRef = db.collection("users");
         customerMutableLiveData = new MutableLiveData<>();
+        findFriendsMutableLiveData = new MutableLiveData<>();
     }
 
     public static FirestoreHelper getInstance(){
@@ -59,13 +66,32 @@ public class FirestoreHelper {
         return customerMutableLiveData;
     }
 
-    public void getCustomerById(String uid){
+    public void getCurrentCustomer(String uid){
         DocumentReference ref = userRef.document(uid);
         ref
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
             Customer customer = documentSnapshot.toObject(Customer.class);
             customerMutableLiveData.postValue(customer);
+        });
+    }
+
+    public LiveData<List<Customer>> findCustomer(String username){
+        findCustomerRefresh(username);
+        return findFriendsMutableLiveData;
+    }
+
+    public void findCustomerRefresh(String username){
+        userRef.whereEqualTo("username", username).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                ArrayList<Customer> customerList = new ArrayList<>();
+                for(QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                    Customer customer = documentSnapshot.toObject(Customer.class);
+                    customerList.add(customer);
+                }
+                findFriendsMutableLiveData.postValue(customerList);
+            }
         });
     }
 }

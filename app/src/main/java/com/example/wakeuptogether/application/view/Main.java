@@ -37,10 +37,10 @@ public class Main extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_main, container, false);
+
         Customer customer = userViewModel.getCurrentCustomer().getValue();
-        Toast.makeText(getContext(), customer.getUsername(), Toast.LENGTH_SHORT).show();
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        return view;
     }
 
 }

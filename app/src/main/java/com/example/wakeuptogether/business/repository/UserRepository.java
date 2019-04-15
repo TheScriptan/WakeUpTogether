@@ -4,6 +4,8 @@ import com.example.wakeuptogether.business.firebase.FirebaseAuthHelper;
 import com.example.wakeuptogether.business.firebase.FirestoreHelper;
 import com.example.wakeuptogether.business.model.Customer;
 
+import java.util.List;
+
 import androidx.lifecycle.LiveData;
 
 public class UserRepository {
@@ -43,4 +45,6 @@ public class UserRepository {
     public LiveData<Customer> getCurrentCustomer(){
         return firestoreHelper.getCustomer();
     }
+
+    public LiveData<List<Customer>> findCustomer(String username) {return firestoreHelper.findCustomer(username);}
 }

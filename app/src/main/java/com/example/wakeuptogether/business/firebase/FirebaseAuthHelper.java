@@ -3,15 +3,8 @@ package com.example.wakeuptogether.business.firebase;
 import android.util.Log;
 
 import com.example.wakeuptogether.business.model.Customer;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
-import androidx.annotation.NonNull;
 
 public class FirebaseAuthHelper {
 
@@ -68,7 +61,7 @@ public class FirebaseAuthHelper {
                 .signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
             currentUser = authResult.getUser();
-            FirestoreHelper.getInstance().getCustomerById(currentUser.getUid());
+            FirestoreHelper.getInstance().getCurrentCustomer(currentUser.getUid());
         })
                 .addOnFailureListener(e -> Log.v(TAG, e.toString()));
     }
