@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/login">
+
+    <fragment
+        android:id="@+id/login"
+        android:name="com.example.wakeuptogether.Login"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/register" />
+        <action
+            android:id="@+id/action_login_to_main"
+            app:destination="@id/main" />
+    </fragment>
+    <fragment
+        android:id="@+id/register"
+        android:name="com.example.wakeuptogether.Register"
+        android:label="fragment_register"
+        tools:layout="@layout/fragment_register" />
+    <fragment
+        android:id="@+id/main"
+        android:name="com.example.wakeuptogether.Main"
+        android:label="fragment_main"
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_main_to_friendList"
+            app:destination="@id/friendList" />
+        <action
+            android:id="@+id/action_main_to_userProfile"
+            app:destination="@id/userProfile" />
+    </fragment>
+    <fragment
+        android:id="@+id/friendList"
+        android:name="com.example.wakeuptogether.FriendList"
+        android:label="fragment_friend_list"
+        tools:layout="@layout/fragment_friend_list" />
+    <fragment
+        android:id="@+id/userProfile"
+        android:name="com.example.wakeuptogether.UserProfile"
+        android:label="fragment_user_profile"
+        tools:layout="@layout/fragment_user_profile" />
+</navigation>
