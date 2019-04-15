@@ -4,10 +4,13 @@ package com.example.wakeuptogether;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 
 /**
@@ -15,6 +18,8 @@ import android.view.ViewGroup;
  */
 public class Register extends Fragment {
 
+    @BindView(R.id.button_register)
+    Button button_register;
 
     public Register() {
         // Required empty public constructor
@@ -24,8 +29,13 @@ public class Register extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_register, container, false);
+        View view = inflater.inflate(R.layout.fragment_register, container, false);
+        ButterKnife.bind(this, view);
+
+        button_register.setOnClickListener((View v) -> {
+            MainActivity.navController.navigate(R.id.action_register_to_main);
+        });
+        return view;
     }
 
 }
