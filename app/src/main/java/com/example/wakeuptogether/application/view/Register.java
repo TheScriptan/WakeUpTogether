@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProviders;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,8 @@ import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
 import com.example.wakeuptogether.business.firebase.FirebaseAuthHelper;
 import com.example.wakeuptogether.business.model.Customer;
+
+import java.util.ArrayList;
 
 
 /**
@@ -57,13 +60,43 @@ public class Register extends Fragment {
         ButterKnife.bind(this, view);
 
         button_register.setOnClickListener((View v) -> {
-            String username = editUsername.getText().toString();
-            String email = editEmail.getText().toString();
-            String password = editPassword.getText().toString();
-            String country = editCountry.getText().toString();
-            Customer customer = new Customer(username, country, "AWAKE", "Describe yourself", -1, 0, null, null);
+            //Todo: Create static variables for minimum text length
+            String username = "";
+            String email = "";
+            String password = "";
+            String country = "";
 
-            userViewModel.register(email, password, customer);
+            //No content provider so I will manually catch errors in the text fields
+            if(TextUtils.isEmpty(editUsername.getText()) && editUsername.getText().length() > 6){
+                username = editUsername.getText().toString();
+            } else {
+                Toast.makeText(getContext(), "Invalid username", Toast.LENGTH_SHORT).show();
+            }
+
+            if(TextUtils.isEmpty(editEmail.getText())){
+                email = editEmail.getText().toString();
+            } else {
+                Toast.makeText(getContext(), "Invalid email", Toast.LENGTH_SHORT).show();
+            }
+
+            if(TextUtils.isEmpty(editPassword.getText()) && editPassword.length() > 5){
+                password = editPassword.getText().toString();
+            } else {
+                Toast.makeText(getContext(), "Invalid email", Toast.LENGTH_SHORT).show();
+            }
+
+            //Todo: add countrypickdialog
+            country = editCountry.getText().toString();
+            Customer customer = new Customer(username,
+                    country, "AWAKE", "Describe yourself",
+                    -1, 0, new ArrayList<>(), new ArrayList<>());
+
+            if(username.length() > 6 && password.length() > 5){
+                userViewModel.register(email, password, customer);
+            } else {
+                Toast.makeText(getContext(), "Invalid Username or Password", Toast.LENGTH_SHORT).show();
+            }
+
         });
         return view;
     }

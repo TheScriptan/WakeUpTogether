@@ -1,6 +1,5 @@
 package com.example.wakeuptogether.application.adapter;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +11,6 @@ import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
 import com.example.wakeuptogether.business.model.Customer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -33,7 +31,6 @@ public class FindFriendListAdapter extends RecyclerView.Adapter<FindFriendListAd
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-
         }
     }
 
@@ -41,49 +38,85 @@ public class FindFriendListAdapter extends RecyclerView.Adapter<FindFriendListAd
     private List<Customer> friendList;
     private UserViewModel userViewModel;
 
-    public FindFriendListAdapter(UserViewModel userViewModel){
-        friendList = new ArrayList<>();
+    public FindFriendListAdapter(List<Customer> friendList, UserViewModel userViewModel){
+        this.friendList = friendList;
         this.userViewModel = userViewModel;
     }
 
     //Notifies recyclerview for data changes
     public void setFriendList(List<Customer> newFriendList){
         friendList.clear();
-        friendList = newFriendList;
+        friendList.addAll(newFriendList);
         notifyDataSetChanged();
     }
 
     //RecyclerView Stuff
+
+    private boolean isPending;
+    private boolean isAdded;
+    private boolean shouldAdd;
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.rv_view_find_friend_item, parent, false);
         ViewHolder vh = new ViewHolder(view);
+
         return vh;
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        //Todo: Optimize state changing because now it sucks
+
         Customer currentCustomer = friendList.get(position);
         String username = currentCustomer.getUsername();
         String country = currentCustomer.getCountry();
-
         holder.textUsername.setText(username);
         holder.textCountry.setText(country);
 
-        //Checks if user was already added and if so, disables Add button
+        //Checks if user exists in pendingFriendList and if so, change the name of the button and accept friend request
         if(userViewModel.getCurrentCustomer().getValue().getPendingFriends().contains(currentCustomer.getUid())){
+            holder.buttonFriendAdd.setText("Accept");
+            isPending = true;
+        }
+        //Check if user is looking for himself
+        else if(userViewModel.getCurrentCustomer().getValue().getUid().equals(currentCustomer.getUid())){
+            holder.buttonFriendAdd.setActivated(false);
+            holder.buttonFriendAdd.setText("Love yourself");
+        }
+        //Check if user is in your friend list
+        else if(userViewModel.getCurrentCustomer().getValue().getFriends().contains(currentCustomer.getUid())){
+            isAdded = true;
             holder.buttonFriendAdd.setActivated(false);
             holder.buttonFriendAdd.setText("Added");
+        } else {
+            shouldAdd = true;
+            holder.buttonFriendAdd.setText("Add");
         }
 
         //When Add button is pressed, button is disabled
+        final boolean finalIsPending = isPending;
+        final boolean finalIsAdded = isAdded;
+        final boolean finalShouldAdd = shouldAdd;
         holder.buttonFriendAdd.setOnClickListener((View v) -> {
-            userViewModel.addPendingFriend(userViewModel.getCurrentCustomer().getValue().getUid(), currentCustomer.getUid());
-            holder.buttonFriendAdd.setActivated(false);
-            holder.buttonFriendAdd.setText("Added");
+            if(finalShouldAdd){
+                userViewModel.addPendingCustomer(currentCustomer.getUid());
+                holder.buttonFriendAdd.setActivated(false);
+                holder.buttonFriendAdd.setText("Added");
+            }
+            else if(finalIsPending){
+                userViewModel.acceptPendingCustomer(currentCustomer.getUid());
+                holder.buttonFriendAdd.setActivated(false);
+                holder.buttonFriendAdd.setText("Added");
+            } else if(finalIsAdded){
+                holder.buttonFriendAdd.setActivated(false);
+                holder.buttonFriendAdd.setText("Added");
+            }
+
         } );
     }
+
 
     @Override
     public int getItemCount() {

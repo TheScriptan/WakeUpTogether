@@ -24,6 +24,7 @@ import com.example.wakeuptogether.application.adapter.FindFriendListAdapter;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
 import com.example.wakeuptogether.business.model.Customer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,7 +48,8 @@ public class FindFriend extends Fragment {
         super.onCreate(savedInstanceState);
         //ViewModel
         userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
-        findFriendListAdapter = new FindFriendListAdapter(userViewModel);
+        ArrayList<Customer> findFriendList = new ArrayList<>();
+        findFriendListAdapter = new FindFriendListAdapter(findFriendList, userViewModel);
     }
 
     @Override
@@ -66,7 +68,6 @@ public class FindFriend extends Fragment {
             @Override
             public void onChanged(List<Customer> customers) {
                 if(customers != null){
-                    Log.v("TEST", "YOU SHOULD NOT WORK");
                     findFriendListAdapter.setFriendList(customers);
                 }
             }

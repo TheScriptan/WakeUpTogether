@@ -10,6 +10,7 @@
       android:id="@+id/image_user"
       android:layout_width="50dp"
       android:layout_height="50dp"
+      android:src="@drawable/tripanzia"
       tools:src="@tools:sample/avatars"
       app:layout_constraintStart_toStartOf="parent"
       android:layout_marginStart="8dp"
@@ -28,7 +29,7 @@
       tools:text="@tools:sample/full_names" />
 
   <Button
-      android:id="@+id/button_friend_add"
+      android:id="@+id/button_friend_accept"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginStart="8dp"
@@ -37,12 +38,12 @@
       app:layout_constraintTop_toBottomOf="@+id/text_username" />
 
   <Button
-      android:id="@+id/btn_refuse_friend"
+      android:id="@+id/button_refuse_friend"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginStart="8dp"
       android:text="Refuse"
-      app:layout_constraintBaseline_toBaselineOf="@+id/button_friend_add"
-      app:layout_constraintStart_toEndOf="@+id/button_friend_add" />
+      app:layout_constraintBaseline_toBaselineOf="@+id/button_friend_accept"
+      app:layout_constraintStart_toEndOf="@+id/button_friend_accept" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

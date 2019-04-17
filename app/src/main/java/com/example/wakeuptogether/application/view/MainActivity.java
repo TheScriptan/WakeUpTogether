@@ -14,7 +14,6 @@ import androidx.navigation.ui.NavigationUI;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import android.app.ActionBar;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
@@ -24,13 +23,13 @@ import android.widget.Toast;
 
 import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
-import com.example.wakeuptogether.business.firebase.FirebaseAuthHelper;
 import com.example.wakeuptogether.business.model.Customer;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
-    boolean test = false;
+    boolean isAuth = false;
+    boolean isFindFriend = false;
 
     public static NavController navController;
     private AppBarConfiguration appBarConfiguration;
@@ -80,11 +79,17 @@ public class MainActivity extends AppCompatActivity {
             public void onDestinationChanged(@NonNull NavController controller, @NonNull NavDestination destination, @Nullable Bundle arguments) {
                 if(destination.getId() == R.id.main){
                     bottomNavigationView.setVisibility(View.VISIBLE);
-                    test = true;
+                    isAuth = true;
                 } else if(destination.getId() == R.id.login){
+                    isAuth = false;
                     bottomNavigationView.setVisibility(View.INVISIBLE);
                 } else if(destination.getId() == R.id.register){
+                    isAuth = false;
                     bottomNavigationView.setVisibility(View.INVISIBLE);
+                }
+
+                if(destination.getId() == R.id.findFriend){
+                    isFindFriend = true;
                 }
             }
         };
@@ -97,15 +102,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void invalidateOptionsMenu() {
+        super.invalidateOptionsMenu();
+    }
+
+    @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
+        invalidateOptionsMenu();
         MenuItem logoutItem = menu.findItem(R.id.action_logout);
         MenuItem findFriendItem = menu.findItem(R.id.action_find_friend);
-        if(test == true){
+        if(isAuth == true){
             logoutItem.setVisible(true);
             findFriendItem.setVisible(true);
         } else {
             logoutItem.setVisible(false);
             findFriendItem.setVisible(false);
+        }
+
+        if(isFindFriend){
+            findFriendItem.setVisible(false);
+        } else if(isAuth && !isFindFriend) {
+            findFriendItem.setVisible(true);
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -122,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                 userViewModel.signOut();
                 return true;
             case R.id.action_find_friend:
-                navController.navigate(R.id.action_global_findFriend);
+                    navController.navigate(R.id.action_global_findFriend);
             default:
                 return super.onOptionsItemSelected(item);
         }

@@ -13,11 +13,13 @@ public class UserViewModel extends ViewModel {
     private UserRepository userRepository;
     private LiveData<Customer> currentCustomerLiveData;
     private LiveData<List<Customer>> customerFindLiveData;
+    private LiveData<List<Customer>> pendingCustomerListLiveData;
 
     public UserViewModel(){
         userRepository = UserRepository.getInstance();
         currentCustomerLiveData = userRepository.getCurrentCustomerLiveData();
         customerFindLiveData = userRepository.getCustomerFindList();
+        pendingCustomerListLiveData = userRepository.getPendingCustomerList();
     }
 
     /*
@@ -41,14 +43,6 @@ public class UserViewModel extends ViewModel {
      */
 
     /*
-     * Add Pending Friend
-     */
-
-    public void addPendingFriend(String currentUser, String pendingFriend){
-        userRepository.addPendingFriend(currentUser, pendingFriend);
-    }
-
-    /*
      * Get Current Customer
      */
 
@@ -63,6 +57,30 @@ public class UserViewModel extends ViewModel {
 
     public void refreshCustomerFindList(String username) {
         userRepository.refreshCustomerFindList(username);
+    }
+
+    /*
+     * Add Pending Friend
+     */
+
+    public void addPendingCustomer(String pendingFriend){
+        userRepository.addPendingCustomer(pendingFriend);
+    }
+
+    public void acceptPendingCustomer(String pendingFriend){
+        userRepository.acceptPendingCustomer(pendingFriend);
+    }
+
+    public void refusePendingCustomer(String pendingFriend){
+        userRepository.refusePendingCustomer(pendingFriend);
+    }
+
+    public void refreshPendingCustomerList(List<String> customers){
+        userRepository.refreshPendingCustomerList(customers);
+    }
+
+    public LiveData<List<Customer>> getPendingCustomerList(){
+        return pendingCustomerListLiveData;
     }
 
 }

@@ -3,6 +3,7 @@ package com.example.wakeuptogether.business.repository;
 import com.example.wakeuptogether.business.firebase.FirebaseAuthHelper;
 import com.example.wakeuptogether.business.firebase.FirestoreHelper;
 import com.example.wakeuptogether.business.model.Customer;
+import com.google.firebase.firestore.FieldValue;
 
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class UserRepository {
 
     public void signOut(){
         firebaseAuthHelper.signOut();
+        firestoreHelper.signOut();
     }
 
     /*
@@ -70,7 +72,23 @@ public class UserRepository {
      * Add pending friend to current user
      */
 
-    public void addPendingFriend(String currentUser, String pendingFriend){
-        firestoreHelper.addPendingFriend(currentUser, pendingFriend);
+    public void addPendingCustomer(String pendingFriend){
+        firestoreHelper.addPendingCustomer(pendingFriend);
+    }
+
+    public void acceptPendingCustomer(String pendingFriend){
+        firestoreHelper.acceptPendingCustomer(pendingFriend);
+    }
+
+    public void refusePendingCustomer(String pendingFriend){
+        firestoreHelper.refusePendingCustomer(pendingFriend);
+    }
+
+    public void refreshPendingCustomerList(List<String> customers){
+        firestoreHelper.refreshPendingCustomerList(customers);
+    }
+
+    public LiveData<List<Customer>> getPendingCustomerList(){
+        return firestoreHelper.getPendingCustomerList();
     }
 }

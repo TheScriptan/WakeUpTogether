@@ -12,6 +12,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -27,12 +28,14 @@ public class FirestoreHelper {
 
     private static final String TAG = "FirebaseTag";
 
+    private ListenerRegistration currentCustomerListener;
     private static FirestoreHelper sInstance;
     private FirebaseFirestore db;
     private CollectionReference userRef;
 
     private MutableLiveData<Customer> customerMutableLiveData;
     private MutableLiveData<List<Customer>> customerFindMutableLiveData;
+    private MutableLiveData<List<Customer>> pendingCustomerListMutableLiveData;
 
 
     private FirestoreHelper(){
@@ -40,6 +43,7 @@ public class FirestoreHelper {
         userRef = db.collection("users");
         customerMutableLiveData = new MutableLiveData<>();
         customerFindMutableLiveData = new MutableLiveData<>();
+        pendingCustomerListMutableLiveData = new MutableLiveData<>();
     }
 
     public static FirestoreHelper getInstance(){
@@ -51,6 +55,17 @@ public class FirestoreHelper {
             }
         }
         return sInstance;
+    }
+
+    /*
+     * Authentication
+     */
+
+    public void signOut(){
+        customerMutableLiveData.setValue(null);
+        customerFindMutableLiveData.setValue(null);
+        pendingCustomerListMutableLiveData.setValue(null);
+        removeCurrentCustomerListener();
     }
 
     /*
@@ -83,7 +98,7 @@ public class FirestoreHelper {
     public void listenForCurrentCustomer(String uid){
         DocumentReference ref = userRef.document(uid);
 
-        ref.addSnapshotListener(AppExecutors.getInstance().networkIO(), new EventListener<DocumentSnapshot>() {
+        currentCustomerListener = ref.addSnapshotListener(AppExecutors.getInstance().networkIO(), new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
                 if(e != null){
@@ -94,6 +109,10 @@ public class FirestoreHelper {
                 customerMutableLiveData.postValue(customer);
             }
         });
+    }
+
+    public void removeCurrentCustomerListener(){
+        currentCustomerListener.remove();
     }
 
     public LiveData<Customer> getCurrentCustomerLiveData(){
@@ -123,13 +142,50 @@ public class FirestoreHelper {
     }
 
     /*
-     * Add Pending Friend
+     * Pending Friend Functionality
      */
 
-    public void addPendingFriend(String currentUser, String pendingFriend){
+    public void addPendingCustomer(String pendingFriend){
         //Add currentUser UID to new friend's pendingFriend list
+        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
         userRef.document(pendingFriend).update("pendingFriends", FieldValue.arrayUnion(currentUser));
-        //Add pendingFriend's UID to currentUser pendingFriend list I THINK I DONT NEED THIS
-        //userRef.document(currentUser).update("pendingFriends", FieldValue.arrayUnion(pendingFriend));
+    }
+
+    public void acceptPendingCustomer(String pendingFriend){
+        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        userRef.document(currentUser).update("pendingFriends", FieldValue.arrayRemove(pendingFriend));
+        userRef.document(currentUser).update("friends", FieldValue.arrayUnion(pendingFriend));
+        userRef.document(pendingFriend).update("friends", FieldValue.arrayUnion(currentUser));
+        //Todo: Temporary solution to update livedata. Should create CustomerList class and update everything
+        List<Customer> temp = pendingCustomerListMutableLiveData.getValue();
+        for(int i = 0; i < temp.size(); i++){
+            if(temp.get(i).getUid().equals(pendingFriend)){
+                temp.remove(i);
+            }
+        }
+        pendingCustomerListMutableLiveData.postValue(temp);
+    }
+
+    public void refusePendingCustomer(String pendingFriend){
+        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        userRef.document(currentUser).update("pendingFriends", FieldValue.arrayRemove(pendingFriend));
+    }
+
+    public void refreshPendingCustomerList(List<String> customers){
+        List<Customer> pendingCustomers = new ArrayList<>();
+        for(int i = 0; i < customers.size(); i++){
+            userRef.document(customers.get(i)).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    Customer customer = documentSnapshot.toObject(Customer.class);
+                    pendingCustomers.add(customer);
+                    pendingCustomerListMutableLiveData.setValue(pendingCustomers);
+                }
+            }); //Success Listener
+        } //For loop
+    }
+
+    public LiveData<List<Customer>> getPendingCustomerList(){
+        return pendingCustomerListMutableLiveData;
     }
 }
