@@ -11,8 +11,8 @@ public class Customer {
     private String bio;
     private long alarmUid;
     private int streaks;
-    List<String> friends;
-    List<String> pendingFriends;
+    private List<String> friends;
+    private List<String> pendingFriends;
 
     public Customer() {}
 

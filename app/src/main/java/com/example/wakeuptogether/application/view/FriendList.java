@@ -49,15 +49,15 @@ public class FriendList extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_friend_list, container, false);
         ButterKnife.bind(this, view);
-        String friends = "";
-        if(customer.getPendingFriends() != null){
-            for(String friend : customer.getPendingFriends()){
-                friends += friend;
-            }
-        } else {
-            friends = "No friends :^(";
-        }
-        labelFriendList.setText(friends);
+//        String friends = "";
+//        if(customer.getPendingFriends() != null){
+//            for(String friend : customer.getPendingFriends()){
+//                friends += friend;
+//            }
+//        } else {
+//            friends = "No friends :^(";
+//        }
+//        labelFriendList.setText(friends);
 
         return view;
     }

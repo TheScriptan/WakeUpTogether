@@ -51,7 +51,8 @@ public class FirebaseAuthHelper {
                 .createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
             currentUser = authResult.getUser();
-            FirestoreHelper.getInstance().addCustomer(customer, currentUser.getUid());
+            FirestoreHelper.getInstance().addCurrentCustomer(customer, currentUser.getUid());
+            FirestoreHelper.getInstance().listenForCurrentCustomer(currentUser.getUid());
         })
                 .addOnFailureListener(e -> Log.v(TAG, e.toString()));
     }
@@ -61,7 +62,8 @@ public class FirebaseAuthHelper {
                 .signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
             currentUser = authResult.getUser();
-            FirestoreHelper.getInstance().getCurrentCustomer(currentUser.getUid());
+            FirestoreHelper.getInstance().updateCurrentCustomerLiveData(currentUser.getUid());
+            FirestoreHelper.getInstance().listenForCurrentCustomer(currentUser.getUid());
         })
                 .addOnFailureListener(e -> Log.v(TAG, e.toString()));
     }

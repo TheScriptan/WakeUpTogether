@@ -30,6 +30,10 @@ public class UserRepository {
         return sInstance;
     }
 
+    /*
+     * AUTHENTICATION
+     */
+
     public void signIn(String email, String password){
         firebaseAuthHelper.signInWithEmailAndPassword(email, password);
     }
@@ -42,9 +46,31 @@ public class UserRepository {
         firebaseAuthHelper.signOut();
     }
 
-    public LiveData<Customer> getCurrentCustomer(){
-        return firestoreHelper.getCustomer();
+    /*
+     * Get Current Customer Data
+     */
+
+    public LiveData<Customer> getCurrentCustomerLiveData(){
+        return firestoreHelper.getCurrentCustomerLiveData();
     }
 
-    public LiveData<List<Customer>> findCustomer(String username) {return firestoreHelper.findCustomer(username);}
+    /*
+     * Get Find Friend functionality data
+     */
+
+    public LiveData<List<Customer>> getCustomerFindList() {
+        return firestoreHelper.getCustomerFindList();
+    }
+
+    public void refreshCustomerFindList(String username){
+        firestoreHelper.refreshCustomerFindList(username);
+    }
+
+    /*
+     * Add pending friend to current user
+     */
+
+    public void addPendingFriend(String currentUser, String pendingFriend){
+        firestoreHelper.addPendingFriend(currentUser, pendingFriend);
+    }
 }

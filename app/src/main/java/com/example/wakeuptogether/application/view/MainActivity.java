@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
+import com.example.wakeuptogether.business.firebase.FirebaseAuthHelper;
 import com.example.wakeuptogether.business.model.Customer;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -125,6 +126,12 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        userViewModel.signOut();
     }
 
     @Override

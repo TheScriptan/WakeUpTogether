@@ -2,7 +2,6 @@ package com.example.wakeuptogether.application.viewmodel;
 
 import com.example.wakeuptogether.business.model.Customer;
 import com.example.wakeuptogether.business.repository.UserRepository;
-import com.google.firebase.firestore.auth.User;
 
 import java.util.List;
 
@@ -12,14 +11,18 @@ import androidx.lifecycle.ViewModel;
 public class UserViewModel extends ViewModel {
 
     private UserRepository userRepository;
-    private LiveData<Customer> customerLiveData;
-    private LiveData<List<Customer>> findFriendsLiveData;
+    private LiveData<Customer> currentCustomerLiveData;
+    private LiveData<List<Customer>> customerFindLiveData;
 
     public UserViewModel(){
         userRepository = UserRepository.getInstance();
-        customerLiveData = userRepository.getCurrentCustomer();
-        findFriendsLiveData = userRepository.findCustomer("");
+        currentCustomerLiveData = userRepository.getCurrentCustomerLiveData();
+        customerFindLiveData = userRepository.getCustomerFindList();
     }
+
+    /*
+     * AUTHENTICATION
+     */
 
     public void signIn(String email, String password){
         userRepository.signIn(email, password);
@@ -33,12 +36,33 @@ public class UserViewModel extends ViewModel {
         userRepository.signOut();
     }
 
-    public LiveData<Customer> getCurrentCustomer(){
-        return customerLiveData;
+    /*
+     * CUSTOMER MANAGEMENT
+     */
+
+    /*
+     * Add Pending Friend
+     */
+
+    public void addPendingFriend(String currentUser, String pendingFriend){
+        userRepository.addPendingFriend(currentUser, pendingFriend);
     }
 
-    public LiveData<List<Customer>> findCustomer(String username) {
-        findFriendsLiveData = userRepository.findCustomer(username);
-        return this.findFriendsLiveData;}
+    /*
+     * Get Current Customer
+     */
+
+    public LiveData<Customer> getCurrentCustomer(){
+        return currentCustomerLiveData;
+    }
+
+    /*
+     * Find Friend Functionality
+     */
+    public LiveData<List<Customer>> getCurrentCustomerList() {return customerFindLiveData;}
+
+    public void refreshCustomerFindList(String username) {
+        userRepository.refreshCustomerFindList(username);
+    }
 
 }

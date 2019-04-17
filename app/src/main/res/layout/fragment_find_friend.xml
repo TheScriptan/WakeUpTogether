@@ -6,20 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".application.view.FindFriend">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/label_friend_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="276dp"
-        android:text="Testing"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_find_friend"
-        app:layout_constraintVertical_bias="0.0" />
-
     <EditText
         android:id="@+id/edit_find_friend"
         android:layout_width="0dp"
@@ -45,5 +31,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edit_find_friend" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_friend_list"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_find_friend"
+        tools:listitem="@layout/rv_view_find_friend_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

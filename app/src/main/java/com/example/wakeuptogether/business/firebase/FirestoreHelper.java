@@ -3,20 +3,23 @@ package com.example.wakeuptogether.business.firebase;
 import android.util.Log;
 
 import com.example.wakeuptogether.business.model.Customer;
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.example.wakeuptogether.utils.AppExecutors;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
+import javax.annotation.Nullable;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -29,14 +32,14 @@ public class FirestoreHelper {
     private CollectionReference userRef;
 
     private MutableLiveData<Customer> customerMutableLiveData;
-    private MutableLiveData<List<Customer>> findFriendsMutableLiveData;
+    private MutableLiveData<List<Customer>> customerFindMutableLiveData;
 
 
     private FirestoreHelper(){
         db = FirebaseFirestore.getInstance();
         userRef = db.collection("users");
         customerMutableLiveData = new MutableLiveData<>();
-        findFriendsMutableLiveData = new MutableLiveData<>();
+        customerFindMutableLiveData = new MutableLiveData<>();
     }
 
     public static FirestoreHelper getInstance(){
@@ -50,7 +53,11 @@ public class FirestoreHelper {
         return sInstance;
     }
 
-    public void addCustomer(Customer customer, String uid){
+    /*
+     * Current User Management in FirebaseAuthHelper and MainActivity
+     */
+
+    public void addCurrentCustomer(Customer customer, String uid){
         DocumentReference ref = userRef.document(uid);
         customer.setUid(uid);
         ref
@@ -62,26 +69,42 @@ public class FirestoreHelper {
                 .addOnFailureListener(e -> Log.v(TAG, "Customer failed to be added"));
     }
 
-    public LiveData<Customer> getCustomer(){
-        return customerMutableLiveData;
-    }
-
-    public void getCurrentCustomer(String uid){
+    public void updateCurrentCustomerLiveData(String uid){
         DocumentReference ref = userRef.document(uid);
         ref
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-            Customer customer = documentSnapshot.toObject(Customer.class);
-            customerMutableLiveData.postValue(customer);
+                    Customer customer = documentSnapshot.toObject(Customer.class);
+                    customerMutableLiveData.postValue(customer);
+                });
+
+    }
+
+    public void listenForCurrentCustomer(String uid){
+        DocumentReference ref = userRef.document(uid);
+
+        ref.addSnapshotListener(AppExecutors.getInstance().networkIO(), new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                if(e != null){
+                    return;
+                }
+
+                Customer customer = documentSnapshot.toObject(Customer.class);
+                customerMutableLiveData.postValue(customer);
+            }
         });
     }
 
-    public LiveData<List<Customer>> findCustomer(String username){
-        findCustomerRefresh(username);
-        return findFriendsMutableLiveData;
+    public LiveData<Customer> getCurrentCustomerLiveData(){
+        return customerMutableLiveData;
     }
 
-    public void findCustomerRefresh(String username){
+    /*
+     * Find Customer List functionality to display friend list according by given username
+     */
+
+    public void refreshCustomerFindList(String username){
         userRef.whereEqualTo("username", username).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -90,8 +113,23 @@ public class FirestoreHelper {
                     Customer customer = documentSnapshot.toObject(Customer.class);
                     customerList.add(customer);
                 }
-                findFriendsMutableLiveData.postValue(customerList);
+                customerFindMutableLiveData.postValue(customerList);
             }
         });
+    }
+
+    public LiveData<List<Customer>> getCustomerFindList(){
+        return customerFindMutableLiveData;
+    }
+
+    /*
+     * Add Pending Friend
+     */
+
+    public void addPendingFriend(String currentUser, String pendingFriend){
+        //Add currentUser UID to new friend's pendingFriend list
+        userRef.document(pendingFriend).update("pendingFriends", FieldValue.arrayUnion(currentUser));
+        //Add pendingFriend's UID to currentUser pendingFriend list I THINK I DONT NEED THIS
+        //userRef.document(currentUser).update("pendingFriends", FieldValue.arrayUnion(pendingFriend));
     }
 }
