@@ -4,18 +4,22 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.view.FriendList;
+import com.example.wakeuptogether.application.viewmodel.AlarmViewModel;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
 import com.example.wakeuptogether.business.model.Customer;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -30,6 +34,7 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Vi
         @BindView(R.id.label_country_answer) TextView textCountryAnswer;
         @BindView(R.id.label_status_answer) TextView textStatusAnswer;
         @BindView(R.id.label_streaks_answer) TextView textStreakAnswer;
+        @BindView(R.id.button_invite) Button buttonInvite;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -40,10 +45,12 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Vi
     //FriendListAdapter
     private List<Customer> customerList;
     private UserViewModel userViewModel;
+    private AlarmViewModel alarmViewModel;
 
-    public FriendListAdapter(List<Customer> customerList, UserViewModel userViewModel){
+    public FriendListAdapter(List<Customer> customerList, UserViewModel userViewModel, AlarmViewModel alarmViewModel){
         this.customerList = customerList;
         this.userViewModel = userViewModel;
+        this.alarmViewModel = alarmViewModel;
     }
 
     public void setCustomerList(List<Customer> newCustomerList){
@@ -89,10 +96,36 @@ public class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.Vi
                         return false;
                 }
             });
-
             popup.show();
             return true;
         });
+        Customer authCustomer = userViewModel.getCurrentCustomer().getValue();
+
+        //Check if alarm was created
+        if(authCustomer.getAlarmUid().equals("-1")){
+            holder.buttonInvite.setVisibility(View.GONE);
+        } else {
+            holder.buttonInvite.setVisibility(View.VISIBLE);
+        }
+
+        //Check if alarm was not created yet
+        if(alarmViewModel.getAlarm().getValue() != null){
+            //Check if user does not exist in alarm already
+            List<String> alarmCustomers = alarmViewModel.getAlarm().getValue().getCustomers();
+            if(alarmCustomers.contains(currentCustomer.getAlarmUid())){
+                holder.buttonInvite.setText("Invited");
+                holder.buttonInvite.setActivated(false);
+            } else {
+                holder.buttonInvite.setText("Invite");
+                holder.buttonInvite.setActivated(true);
+            }
+        }
+
+        holder.buttonInvite.setOnClickListener((View v) -> {
+            Toast.makeText(v.getContext(), "Invited", Toast.LENGTH_SHORT).show();
+            alarmViewModel.inviteCustomerToAlarm(alarmViewModel.getAlarm().getValue().getAlarmUid(), currentCustomer.getUid());
+        });
+
     }
 
     @Override

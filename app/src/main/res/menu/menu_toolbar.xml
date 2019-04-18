@@ -4,10 +4,14 @@
 
     <item
         android:id="@+id/action_find_friend"
-        android:title="Find a friend"
-        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_search_white_24dp"
-        />
+        android:title="Find a friend"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_leave_alarm"
+        android:title="Leave Alarm" />
+
     <item
         android:id="@+id/action_settings"
         android:title="Settings" />

@@ -2,7 +2,9 @@ package com.example.wakeuptogether.business.firebase;
 
 import android.util.Log;
 
+import com.example.wakeuptogether.business.model.Alarm;
 import com.example.wakeuptogether.business.model.Customer;
+import com.example.wakeuptogether.business.model.Time;
 import com.example.wakeuptogether.utils.AppExecutors;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
@@ -29,23 +31,32 @@ public class FirestoreHelper {
     private static final String TAG = "FirebaseTag";
 
     private ListenerRegistration currentCustomerListener;
+    private ListenerRegistration alarmListener;
+
     private static FirestoreHelper sInstance;
     private FirebaseFirestore db;
+
     private CollectionReference userRef;
+    private CollectionReference alarmRef;
 
     private MutableLiveData<Customer> customerMutableLiveData;
     private MutableLiveData<List<Customer>> customerFindMutableLiveData;
     private MutableLiveData<List<Customer>> pendingCustomerListMutableLiveData;
     private MutableLiveData<List<Customer>> friendCustomerListMutableLiveData;
+    private MutableLiveData<List<Customer>> alarmCustomerListMutableLiveData;
+    private MutableLiveData<Alarm> alarmMutableLiveData;
 
 
     private FirestoreHelper(){
         db = FirebaseFirestore.getInstance();
         userRef = db.collection("users");
+        alarmRef = db.collection("alarms");
         customerMutableLiveData = new MutableLiveData<>();
         customerFindMutableLiveData = new MutableLiveData<>();
         pendingCustomerListMutableLiveData = new MutableLiveData<>();
         friendCustomerListMutableLiveData = new MutableLiveData<>();
+        alarmCustomerListMutableLiveData = new MutableLiveData<>();
+        alarmMutableLiveData = new MutableLiveData<>();
     }
 
     public static FirestoreHelper getInstance(){
@@ -68,7 +79,10 @@ public class FirestoreHelper {
         customerFindMutableLiveData.setValue(null);
         pendingCustomerListMutableLiveData.setValue(null);
         friendCustomerListMutableLiveData.setValue(null);
+        alarmCustomerListMutableLiveData.setValue(null);
+        alarmMutableLiveData.setValue(null);
         removeCurrentCustomerListener();
+        removeAlarmListener();
     }
 
     /*
@@ -100,7 +114,6 @@ public class FirestoreHelper {
 
     public void listenForCurrentCustomer(String uid){
         DocumentReference ref = userRef.document(uid);
-
         currentCustomerListener = ref.addSnapshotListener(AppExecutors.getInstance().networkIO(), new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
@@ -115,7 +128,8 @@ public class FirestoreHelper {
     }
 
     public void removeCurrentCustomerListener(){
-        currentCustomerListener.remove();
+        if(currentCustomerListener != null)
+            currentCustomerListener.remove();
     }
 
     public LiveData<Customer> getCurrentCustomerLiveData(){
@@ -230,5 +244,111 @@ public class FirestoreHelper {
 
     public LiveData<List<Customer>> getFriendCustomerList(){
         return friendCustomerListMutableLiveData;
+    }
+
+    /*
+     * Alarm Functionality
+     */
+
+    public void addAlarm(Time time){
+        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        DocumentReference newAlarmRef = alarmRef.document();
+        List<String> customers = new ArrayList<>();
+        customers.add(currentUser);
+        Alarm alarm = new Alarm(newAlarmRef.getId(), customers, time);
+        newAlarmRef.set(alarm).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.v(TAG, "Alarm created successfully!");
+                alarmMutableLiveData.postValue(alarm);
+            }
+        });
+        userRef.document(currentUser).update("alarmUid", newAlarmRef.getId());
+    }
+
+    public void updateAlarm(String alarmUid, Time time){
+        alarmRef.document(alarmUid).update("time", time);
+        Alarm alarm = alarmMutableLiveData.getValue();
+        alarm.setTime(time);
+        alarmMutableLiveData.postValue(alarm);
+    }
+
+    public void leaveAlarm(String alarmUid){
+        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        Alarm alarm = alarmMutableLiveData.getValue();
+        userRef.document(currentUser).update("alarmUid", "-1");
+        if(alarm == null){
+            return;
+        }
+        if(alarm.getCustomers().size() > 1){
+            alarmRef.document(alarmUid).update("customers", FieldValue.arrayRemove(currentUser));
+        } else {
+            alarmRef.document(alarmUid).delete();
+        }
+    }
+
+    public void inviteCustomerToAlarm(String alarmUid, String friendUid){
+        userRef.whereEqualTo("uid", friendUid).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for(QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                    Customer customer = documentSnapshot.toObject(Customer.class);
+                    if(customer.getAlarmUid().equals("-1")){
+                        userRef.document(friendUid).update("alarmUid", alarmUid);
+                        alarmRef.document(alarmUid).update("customers", FieldValue.arrayUnion(friendUid));
+                    }
+                }
+            }
+        });
+    }
+
+    public void listenForAlarm(String alarmUid){
+        DocumentReference alarmListenRef = alarmRef.document(alarmUid);
+        alarmListener =  alarmListenRef.addSnapshotListener(AppExecutors.getInstance().networkIO(), new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                if(e != null){
+                    return;
+                }
+                Alarm alarm = documentSnapshot.toObject(Alarm.class);
+                if(alarm != null){
+                    if(alarm.getCustomers() != null){
+                        refreshAlarmCustomerList(alarm.getCustomers());
+                    }
+                }
+                alarmMutableLiveData.postValue(alarm);
+            }
+        });
+    }
+
+    public void removeAlarmListener(){
+        if(alarmListener != null)
+            alarmListener.remove();
+    }
+
+    public LiveData<Alarm> getAlarm() {
+        return alarmMutableLiveData;
+    }
+
+    /*
+     * Alarm Friend Functionality
+     */
+
+    public void refreshAlarmCustomerList(List<String> customers){
+        List<Customer> alarmCustomers = new ArrayList<>();
+        for(int i = 0; i < customers.size(); i++){
+            userRef.document(customers.get(i)).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    Customer customer = documentSnapshot.toObject(Customer.class);
+                    alarmCustomers.add(customer);
+                    alarmCustomerListMutableLiveData.setValue(alarmCustomers);
+                }
+            }); //Success Listener
+        } //For loop
+    }
+
+    public LiveData<List<Customer>> getAlarmCustomerList(){
+        return alarmCustomerListMutableLiveData;
     }
 }

@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/friendList"
-        android:title="Friends"
-        />
-    <item android:id="@+id/main"
-        android:title="Main"
-        />
-    <item android:id="@+id/userProfile"
-        android:title="Profile"
-        />
+    <item
+        android:id="@+id/friendList"
+        android:icon="@drawable/shape_bottom_nav_circle"
+        android:title="Friends" />
+    <item
+        android:id="@+id/main"
+        android:icon="@drawable/shape_bottom_nav_circle"
+        android:title="Main" />
+    <item
+        android:id="@+id/userProfile"
+        android:icon="@drawable/shape_bottom_nav_circle"
+        android:title="Profile" />
 </menu>

@@ -67,19 +67,19 @@ public class Register extends Fragment {
             String country = "";
 
             //No content provider so I will manually catch errors in the text fields
-            if(TextUtils.isEmpty(editUsername.getText()) && editUsername.getText().length() > 6){
+            if(!TextUtils.isEmpty(editUsername.getText()) && editUsername.getText().length() > 6){
                 username = editUsername.getText().toString();
             } else {
                 Toast.makeText(getContext(), "Invalid username", Toast.LENGTH_SHORT).show();
             }
 
-            if(TextUtils.isEmpty(editEmail.getText())){
+            if(!TextUtils.isEmpty(editEmail.getText())){
                 email = editEmail.getText().toString();
             } else {
                 Toast.makeText(getContext(), "Invalid email", Toast.LENGTH_SHORT).show();
             }
 
-            if(TextUtils.isEmpty(editPassword.getText()) && editPassword.length() > 5){
+            if(!TextUtils.isEmpty(editPassword.getText()) && editPassword.length() > 5){
                 password = editPassword.getText().toString();
             } else {
                 Toast.makeText(getContext(), "Invalid email", Toast.LENGTH_SHORT).show();
@@ -89,9 +89,9 @@ public class Register extends Fragment {
             country = editCountry.getText().toString();
             Customer customer = new Customer(username,
                     country, "AWAKE", "Describe yourself",
-                    -1, 0, new ArrayList<>(), new ArrayList<>());
+                    "-1", 0, new ArrayList<>(), new ArrayList<>());
 
-            if(username.length() > 6 && password.length() > 5){
+            if(username.length() >= 6 && password.length() >= 5){
                 userViewModel.register(email, password, customer);
             } else {
                 Toast.makeText(getContext(), "Invalid Username or Password", Toast.LENGTH_SHORT).show();

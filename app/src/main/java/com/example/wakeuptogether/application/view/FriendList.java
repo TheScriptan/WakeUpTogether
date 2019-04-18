@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.adapter.FriendListAdapter;
 import com.example.wakeuptogether.application.adapter.PendingFriendListAdapter;
+import com.example.wakeuptogether.application.viewmodel.AlarmViewModel;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
 import com.example.wakeuptogether.business.model.Customer;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -35,11 +36,11 @@ import java.util.List;
 public class FriendList extends Fragment {
 
     private UserViewModel userViewModel;
+    private AlarmViewModel alarmViewModel;
     private PendingFriendListAdapter pendingFriendListAdapter;
     private FriendListAdapter friendListAdapter;
     private Customer customer;
 
-    @BindView(R.id.fab_add) FloatingActionButton fabAdd;
     @BindView(R.id.rv_pending_friends) RecyclerView rvPendingFriends;
     @BindView(R.id.rv_friend_list) RecyclerView rvFriendList;
 
@@ -51,6 +52,7 @@ public class FriendList extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        alarmViewModel = ViewModelProviders.of(this).get(AlarmViewModel.class);
         customer = userViewModel.getCurrentCustomer().getValue();
         //Check if customer has pending friends
         if(customer.getPendingFriends() != null){
@@ -63,7 +65,7 @@ public class FriendList extends Fragment {
         ArrayList<Customer> pendingFriendList = new ArrayList<>();
         ArrayList<Customer> friendList = new ArrayList<>();
         pendingFriendListAdapter = new PendingFriendListAdapter(pendingFriendList, userViewModel);
-        friendListAdapter = new FriendListAdapter(friendList, userViewModel);
+        friendListAdapter = new FriendListAdapter(friendList, userViewModel, alarmViewModel);
     }
 
     @Override

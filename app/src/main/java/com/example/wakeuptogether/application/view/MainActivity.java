@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.wakeuptogether.R;
+import com.example.wakeuptogether.application.viewmodel.AlarmViewModel;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
 import com.example.wakeuptogether.business.model.Customer;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -30,11 +32,17 @@ public class MainActivity extends AppCompatActivity {
 
     boolean isAuth = false;
     boolean isFindFriend = false;
+    boolean canLeaveAlarm = false;
 
     public static NavController navController;
     private AppBarConfiguration appBarConfiguration;
 
     private UserViewModel userViewModel;
+    private AlarmViewModel alarmViewModel;
+
+    private MenuItem logoutItem;
+    private MenuItem findFriendItem;
+    private MenuItem leaveAlarmItem;
 
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.bottomNavigationView) BottomNavigationView bottomNavigationView;
@@ -57,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
 
         userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        alarmViewModel = ViewModelProviders.of(this).get(AlarmViewModel.class);
 
         userViewModel.getCurrentCustomer().observe(this, new Observer<Customer>() {
             @Override
@@ -81,17 +90,25 @@ public class MainActivity extends AppCompatActivity {
                     bottomNavigationView.setVisibility(View.VISIBLE);
                     isAuth = true;
                     isFindFriend = false;
+                    //Check if user has alarmUid, if so then enable Leave Alarm menu item
+                    if(!userViewModel.getCurrentCustomer().getValue().getAlarmUid().equals("-1"))
+                        canLeaveAlarm = true;
                 } else if(destination.getId() == R.id.login){
                     isAuth = false;
+                    canLeaveAlarm = false;
                     bottomNavigationView.setVisibility(View.INVISIBLE);
                 } else if(destination.getId() == R.id.register){
                     isAuth = false;
+                    canLeaveAlarm = false;
                     bottomNavigationView.setVisibility(View.INVISIBLE);
+                } else if(destination.getId() == R.id.findFriend){
+                    isFindFriend = true;
+                    canLeaveAlarm = false;
+                } else {
+                    canLeaveAlarm = false;
                 }
 
-                if(destination.getId() == R.id.findFriend){
-                    isFindFriend = true;
-                }
+
             }
         };
     }
@@ -99,6 +116,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_toolbar, menu);
+
+        logoutItem = menu.findItem(R.id.action_logout);
+        findFriendItem = menu.findItem(R.id.action_find_friend);
+        leaveAlarmItem = menu.findItem(R.id.action_leave_alarm);
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -110,9 +132,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         invalidateOptionsMenu();
-        MenuItem logoutItem = menu.findItem(R.id.action_logout);
-        MenuItem findFriendItem = menu.findItem(R.id.action_find_friend);
-        if(isAuth == true){
+        if(isAuth){
             logoutItem.setVisible(true);
             findFriendItem.setVisible(true);
         } else {
@@ -124,6 +144,12 @@ public class MainActivity extends AppCompatActivity {
             findFriendItem.setVisible(false);
         } else if(isAuth) {
             findFriendItem.setVisible(true);
+        }
+
+        if(canLeaveAlarm){
+            leaveAlarmItem.setVisible(true);
+        } else {
+            leaveAlarmItem.setVisible(false);
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -137,10 +163,17 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_logout:
                 navController.navigate(R.id.action_logout);
+                isAuth = false;
                 userViewModel.signOut();
                 return true;
             case R.id.action_find_friend:
                     navController.navigate(R.id.action_global_findFriend);
+                    isFindFriend = true;
+                    return true;
+            case R.id.action_leave_alarm:
+                alarmViewModel.leaveAlarm(userViewModel.getCurrentCustomer().getValue().getAlarmUid());
+                canLeaveAlarm = false;
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

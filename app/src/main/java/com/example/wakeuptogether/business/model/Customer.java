@@ -9,14 +9,14 @@ public class Customer {
     private String country;
     private String status;
     private String bio;
-    private long alarmUid;
+    private String alarmUid;
     private int streaks;
     private List<String> friends;
     private List<String> pendingFriends;
 
     public Customer() {}
 
-    public Customer(String username, String country, String status, String bio, long alarmUid, int streaks, List<String> friends, List<String> pendingFriends) {
+    public Customer(String username, String country, String status, String bio, String alarmUid, int streaks, List<String> friends, List<String> pendingFriends) {
         this.username = username;
         this.country = country;
         this.status = status;
@@ -47,7 +47,7 @@ public class Customer {
         return bio;
     }
 
-    public long getAlarmUid() {
+    public String getAlarmUid() {
         return alarmUid;
     }
 
