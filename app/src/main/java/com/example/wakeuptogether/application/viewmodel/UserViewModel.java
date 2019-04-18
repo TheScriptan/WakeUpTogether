@@ -83,4 +83,20 @@ public class UserViewModel extends ViewModel {
         return pendingCustomerListLiveData;
     }
 
+    /*
+     * Friend functionality
+     */
+
+    public void refreshFriendCustomerList(List<String> customers){
+        userRepository.refreshFriendCustomerList(customers);
+    }
+
+    public void removeFriend(String friend){
+        userRepository.removeFriend(friend);
+    }
+
+    public LiveData<List<Customer>> getFriendCustomerList(){
+        return userRepository.getFriendCustomerList();
+    }
+
 }

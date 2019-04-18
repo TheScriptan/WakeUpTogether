@@ -91,4 +91,20 @@ public class UserRepository {
     public LiveData<List<Customer>> getPendingCustomerList(){
         return firestoreHelper.getPendingCustomerList();
     }
+
+    /*
+     * Friend Functionality
+     */
+
+    public void refreshFriendCustomerList(List<String> customers){
+        firestoreHelper.refreshFriendCustomerList(customers);
+    }
+
+    public void removeFriend(String friend){
+        firestoreHelper.removeFriend(friend);
+    }
+
+    public LiveData<List<Customer>> getFriendCustomerList(){
+        return firestoreHelper.getFriendCustomerList();
+    }
 }

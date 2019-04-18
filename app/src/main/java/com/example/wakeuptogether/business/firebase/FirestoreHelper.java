@@ -36,6 +36,7 @@ public class FirestoreHelper {
     private MutableLiveData<Customer> customerMutableLiveData;
     private MutableLiveData<List<Customer>> customerFindMutableLiveData;
     private MutableLiveData<List<Customer>> pendingCustomerListMutableLiveData;
+    private MutableLiveData<List<Customer>> friendCustomerListMutableLiveData;
 
 
     private FirestoreHelper(){
@@ -44,6 +45,7 @@ public class FirestoreHelper {
         customerMutableLiveData = new MutableLiveData<>();
         customerFindMutableLiveData = new MutableLiveData<>();
         pendingCustomerListMutableLiveData = new MutableLiveData<>();
+        friendCustomerListMutableLiveData = new MutableLiveData<>();
     }
 
     public static FirestoreHelper getInstance(){
@@ -65,6 +67,7 @@ public class FirestoreHelper {
         customerMutableLiveData.setValue(null);
         customerFindMutableLiveData.setValue(null);
         pendingCustomerListMutableLiveData.setValue(null);
+        friendCustomerListMutableLiveData.setValue(null);
         removeCurrentCustomerListener();
     }
 
@@ -157,13 +160,18 @@ public class FirestoreHelper {
         userRef.document(currentUser).update("friends", FieldValue.arrayUnion(pendingFriend));
         userRef.document(pendingFriend).update("friends", FieldValue.arrayUnion(currentUser));
         //Todo: Temporary solution to update livedata. Should create CustomerList class and update everything
-        List<Customer> temp = pendingCustomerListMutableLiveData.getValue();
-        for(int i = 0; i < temp.size(); i++){
-            if(temp.get(i).getUid().equals(pendingFriend)){
-                temp.remove(i);
+        //Refreshes when user accepts a friend. Refreshes pendingFriend list and friendList instantly
+        List<Customer> tempPending = pendingCustomerListMutableLiveData.getValue();
+        List<String> tempFriend = new ArrayList<>();
+        tempFriend.add(pendingFriend);
+        for(int i = 0; i < tempPending.size(); i++){
+            if(tempPending.get(i).getUid().equals(pendingFriend)){
+                Customer customer = tempPending.get(i);
+                tempPending.remove(i);
             }
         }
-        pendingCustomerListMutableLiveData.postValue(temp);
+        refreshFriendCustomerList(tempFriend);
+        pendingCustomerListMutableLiveData.postValue(tempPending);
     }
 
     public void refusePendingCustomer(String pendingFriend){
@@ -187,5 +195,40 @@ public class FirestoreHelper {
 
     public LiveData<List<Customer>> getPendingCustomerList(){
         return pendingCustomerListMutableLiveData;
+    }
+
+    /*
+     * Friend Functionality
+     */
+
+    public void refreshFriendCustomerList(List<String> customers){
+        List<Customer> friendList = new ArrayList<>();
+        for(int i = 0; i < customers.size(); i++){
+            userRef.document(customers.get(i)).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    Customer customer = documentSnapshot.toObject(Customer.class);
+                    friendList.add(customer);
+                    friendCustomerListMutableLiveData.postValue(friendList);
+                }
+            });
+        }
+    }
+
+    public void removeFriend(String friend){
+        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        userRef.document(currentUser).update("friends", FieldValue.arrayRemove(friend));
+        userRef.document(friend).update("friends", FieldValue.arrayRemove(currentUser));
+        List<Customer> tempFriend = friendCustomerListMutableLiveData.getValue();
+        for(int i = 0; i < tempFriend.size(); i++){
+            if(tempFriend.get(i).getUid().equals(friend)){
+                tempFriend.remove(i);
+            }
+        }
+        friendCustomerListMutableLiveData.postValue(tempFriend);
+    }
+
+    public LiveData<List<Customer>> getFriendCustomerList(){
+        return friendCustomerListMutableLiveData;
     }
 }

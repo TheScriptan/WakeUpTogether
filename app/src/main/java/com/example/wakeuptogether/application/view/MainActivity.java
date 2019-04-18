@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 if(destination.getId() == R.id.main){
                     bottomNavigationView.setVisibility(View.VISIBLE);
                     isAuth = true;
+                    isFindFriend = false;
                 } else if(destination.getId() == R.id.login){
                     isAuth = false;
                     bottomNavigationView.setVisibility(View.INVISIBLE);
@@ -121,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(isFindFriend){
             findFriendItem.setVisible(false);
-        } else if(isAuth && !isFindFriend) {
+        } else if(isAuth) {
             findFriendItem.setVisible(true);
         }
         return super.onPrepareOptionsMenu(menu);
