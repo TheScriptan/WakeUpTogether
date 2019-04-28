@@ -1,22 +1,22 @@
 package com.example.wakeuptogether.application.viewmodel;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModel;
+
 import com.example.wakeuptogether.business.model.Customer;
 import com.example.wakeuptogether.business.repository.UserRepository;
 
 import java.util.List;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModel;
-
 public class UserViewModel extends ViewModel {
 
-    private UserRepository userRepository;
-    private LiveData<Customer> currentCustomerLiveData;
-    private LiveData<List<Customer>> customerFindLiveData;
-    private LiveData<List<Customer>> pendingCustomerListLiveData;
+    private final UserRepository userRepository;
+    private final LiveData<Customer> currentCustomerLiveData;
+    private final LiveData<List<Customer>> customerFindLiveData;
+    private final LiveData<List<Customer>> pendingCustomerListLiveData;
 
-    public UserViewModel(){
-        userRepository = UserRepository.getInstance();
+    public UserViewModel(UserRepository userRepository){
+        this.userRepository = userRepository;
         currentCustomerLiveData = userRepository.getCurrentCustomerLiveData();
         customerFindLiveData = userRepository.getCustomerFindList();
         pendingCustomerListLiveData = userRepository.getPendingCustomerList();
@@ -97,6 +97,18 @@ public class UserViewModel extends ViewModel {
 
     public LiveData<List<Customer>> getFriendCustomerList(){
         return userRepository.getFriendCustomerList();
+    }
+
+    /*
+     * Sleep
+     */
+
+    public void setCustomerWakeUp(int hour, int minute){
+        userRepository.setCustomerWakeUp(hour, minute);
+    }
+
+    public void setCustomerSleep(int hour, int minute){
+        userRepository.setCustomerSleep(hour, minute);
     }
 
 }

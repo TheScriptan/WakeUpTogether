@@ -2,22 +2,20 @@ package com.example.wakeuptogether.application.view;
 
 
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
-import com.example.wakeuptogether.business.model.Customer;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 
 /**
@@ -38,7 +36,7 @@ public class UserProfile extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        userViewModel = ViewModelProviders.of(getActivity(), MainActivity.viewModelFactory).get(UserViewModel.class);
     }
 
     @Override
@@ -47,13 +45,18 @@ public class UserProfile extends Fragment {
         View view = inflater.inflate(R.layout.fragment_user_profile, container, false);
         ButterKnife.bind(this, view);
 
-        Customer customer = userViewModel.getCurrentCustomer().getValue();
-        String profile = "Username: " + customer.getUsername()
-                + "\nCountry: " + customer.getCountry()
-                + "\nBio: " + customer.getBio()
-                + "\nStatus: " + customer.getStatus()
-                + "\nStreaks: " + customer.getStreaks();
-        labelProfile.setText(profile);
+        userViewModel.getCurrentCustomer().observe(this, customer -> {
+            if(customer != null){
+                String profile = "Username: " + customer.getUsername()
+                        + "\nCountry: " + customer.getCountry()
+                        + "\nBio: " + customer.getBio()
+                        + "\nStatus: " + customer.getStatus()
+                        + "\nStreaks: " + customer.getStreaks();
+                labelProfile.setText(profile);
+            }
+        });
+
+
         return view;
     }
 

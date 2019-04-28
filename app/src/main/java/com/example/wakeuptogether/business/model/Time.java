@@ -24,6 +24,14 @@ public class Time {
 
     @Override
     public String toString() {
-        return "" + getHour() + ":" + getMinute();
+        if(getMinute() < 10 && getHour() < 10){
+            return "0" + getHour() + ":0" + getMinute();
+        } else if(getHour() < 10){
+            return "0" + getHour() + ":" + getMinute();
+        } else if(getMinute() < 10){
+            return "" + getHour() + ":0" + getMinute();
+        } else {
+           return "" + getHour() + ":" + getMinute();
+        }
     }
 }

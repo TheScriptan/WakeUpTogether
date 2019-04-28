@@ -3,6 +3,7 @@ package com.example.wakeuptogether.business.firebase;
 import android.util.Log;
 
 import com.example.wakeuptogether.business.model.Customer;
+import com.example.wakeuptogether.utils.PreferenceUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -12,17 +13,19 @@ public class FirebaseAuthHelper {
     private FirebaseAuth auth;
     private FirebaseUser currentUser;
     private static final String TAG = "FirebaseTag";
+    private final PreferenceUtils preferenceUtils;
 
-    private FirebaseAuthHelper(){
+    private FirebaseAuthHelper(PreferenceUtils preferenceUtils){
+        this.preferenceUtils = preferenceUtils;
         auth = FirebaseAuth.getInstance();
         currentUser = auth.getCurrentUser();
     }
 
-    public static FirebaseAuthHelper getInstance(){
+    public static FirebaseAuthHelper getInstance(PreferenceUtils preferenceUtils){
         if(sInstance == null){
             synchronized (FirebaseAuthHelper.class){
                 if(sInstance == null){
-                    sInstance = new FirebaseAuthHelper();
+                    sInstance = new FirebaseAuthHelper(preferenceUtils);
                 }
             }
         }
@@ -38,6 +41,7 @@ public class FirebaseAuthHelper {
     }
 
     public void signOut(){
+        preferenceUtils.removeData();
         auth.signOut();
         currentUser = null;
     }
@@ -53,6 +57,7 @@ public class FirebaseAuthHelper {
             currentUser = authResult.getUser();
             FirestoreHelper.getInstance().addCurrentCustomer(customer, currentUser.getUid());
             FirestoreHelper.getInstance().listenForCurrentCustomer(currentUser.getUid());
+            preferenceUtils.saveUserData(email, password);
         })
                 .addOnFailureListener(e -> Log.v(TAG, e.toString()));
     }
@@ -64,9 +69,11 @@ public class FirebaseAuthHelper {
             currentUser = authResult.getUser();
             FirestoreHelper.getInstance().updateCurrentCustomerLiveData(currentUser.getUid());
             FirestoreHelper.getInstance().listenForCurrentCustomer(currentUser.getUid());
+            preferenceUtils.saveUserData(email, password);
         })
                 .addOnFailureListener(e -> Log.v(TAG, e.toString()));
     }
+
 
 
 

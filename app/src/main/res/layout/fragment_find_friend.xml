@@ -44,4 +44,14 @@
         app:layout_constraintTop_toBottomOf="@+id/button_find_friend"
         tools:listitem="@layout/rv_view_find_friend_item" />
 
+    <TextView
+        android:id="@+id/label_no_found_friends"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="No existing friends found."
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_find_friend" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -54,5 +54,8 @@ dependencies {
     //LiveData & Viewmodel
     def lifecycle_version = "2.0.0"
 
+    //Country Picker
+    implementation 'com.hbb20:ccp:2.2.9'
+
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
 }

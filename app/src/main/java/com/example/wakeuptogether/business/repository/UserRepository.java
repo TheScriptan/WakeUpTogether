@@ -1,30 +1,32 @@
 package com.example.wakeuptogether.business.repository;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.wakeuptogether.business.firebase.FirebaseAuthHelper;
 import com.example.wakeuptogether.business.firebase.FirestoreHelper;
 import com.example.wakeuptogether.business.model.Customer;
-import com.google.firebase.firestore.FieldValue;
+import com.example.wakeuptogether.utils.PreferenceUtils;
 
 import java.util.List;
-
-import androidx.lifecycle.LiveData;
 
 public class UserRepository {
 
     private static UserRepository sInstance;
-    private FirestoreHelper firestoreHelper;
-    private FirebaseAuthHelper firebaseAuthHelper;
+    private final FirestoreHelper firestoreHelper;
+    private final FirebaseAuthHelper firebaseAuthHelper;
+    private final PreferenceUtils preferenceUtils;
 
-    private UserRepository(){
+    private UserRepository(PreferenceUtils preferenceUtils){
+        this.preferenceUtils = preferenceUtils;
         firestoreHelper = FirestoreHelper.getInstance();
-        firebaseAuthHelper = FirebaseAuthHelper.getInstance();
+        firebaseAuthHelper = FirebaseAuthHelper.getInstance(preferenceUtils);
     }
 
-    public static UserRepository getInstance(){
+    public static UserRepository getInstance(PreferenceUtils preferenceUtils){
         if(sInstance == null){
             synchronized (UserRepository.class){
                 if(sInstance == null){
-                    sInstance = new UserRepository();
+                    sInstance = new UserRepository(preferenceUtils);
                 }
             }
         }
@@ -106,5 +108,17 @@ public class UserRepository {
 
     public LiveData<List<Customer>> getFriendCustomerList(){
         return firestoreHelper.getFriendCustomerList();
+    }
+
+    /*
+     * Sleep and waking up functionality
+     */
+
+    public void setCustomerWakeUp(int hour, int minute){
+        firestoreHelper.setCustomerWakeUp(hour, minute);
+    }
+
+    public void setCustomerSleep(int hour, int minute){
+        firestoreHelper.setCustomerSleep(hour, minute);
     }
 }

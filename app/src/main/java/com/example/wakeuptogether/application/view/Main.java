@@ -2,6 +2,12 @@ package com.example.wakeuptogether.application.view;
 
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
@@ -10,19 +16,11 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.adapter.AlarmFriendListAdapter;
 import com.example.wakeuptogether.application.viewmodel.AlarmViewModel;
+import com.example.wakeuptogether.application.viewmodel.StateViewModel;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
 import com.example.wakeuptogether.business.model.Alarm;
 import com.example.wakeuptogether.business.model.Customer;
@@ -32,6 +30,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
+import static com.example.wakeuptogether.R.drawable.sleep;
+import static com.example.wakeuptogether.R.drawable.wake;
 
 
 /**
@@ -46,11 +50,10 @@ public class Main extends Fragment {
 
     private UserViewModel userViewModel;
     private AlarmViewModel alarmViewModel;
+    private StateViewModel stateViewModel;
     private AlarmFriendListAdapter alarmFriendListAdapter;
     private Customer currentCustomer;
     private Alarm currentAlarm;
-
-    private boolean hasAlarm;
 
     public Main() {
         // Required empty public constructor
@@ -60,8 +63,9 @@ public class Main extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //ViewModel
-        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
-        alarmViewModel = ViewModelProviders.of(this).get(AlarmViewModel.class);
+        userViewModel = ViewModelProviders.of(getActivity(), MainActivity.viewModelFactory).get(UserViewModel.class);
+        alarmViewModel = ViewModelProviders.of(getActivity(), MainActivity.viewModelFactory).get(AlarmViewModel.class);
+        stateViewModel = ViewModelProviders.of(getActivity()).get(StateViewModel.class);
 
         //Recyclerview
         ArrayList<Customer> customerList = new ArrayList<>();
@@ -79,7 +83,7 @@ public class Main extends Fragment {
         }
 
         //Check if there is an alarm
-        hasAlarm = !currentCustomer.getAlarmUid().equals("-1");
+        stateViewModel.setHasAlarm(!currentCustomer.getAlarmUid().equals("-1"));
     }
 
     @Override
@@ -88,6 +92,15 @@ public class Main extends Fragment {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         ButterKnife.bind(this, view);
 
+        //initialize floating action button text
+        if(currentCustomer.getStatus().equals("AWAKE")){
+            fabAdd.setImageResource(sleep);
+        } else if(currentCustomer.getStatus().equals("SLEEPING")){
+            fabAdd.setImageResource(wake);
+        }
+
+
+        //Setup recyclerview
         rvAlarmFriendList.setHasFixedSize(true);
         rvAlarmFriendList.setLayoutManager(new LinearLayoutManager(getContext()));
         rvAlarmFriendList.setAdapter(alarmFriendListAdapter);
@@ -107,7 +120,35 @@ public class Main extends Fragment {
             labelAlarmTime.setText(new Time(hour, minute).toString());
             labelAlarmTime.setVisibility(View.VISIBLE);
             fabAdd.show();
-            hasAlarm = true;
+            stateViewModel.setHasAlarm(true);
+        });
+
+        //Create FAB listener to notify when user went to sleep and when he woke up
+        fabAdd.setOnClickListener((View v) -> {
+            //Spam protection against the button for 10 seconds
+            Toast.makeText(getContext(), "Long: " + stateViewModel.getLastTimeClicked(), Toast.LENGTH_SHORT).show();
+            if(System.currentTimeMillis() >= stateViewModel.getLastTimeClicked() + 5000){
+                //Update currentCustomer values
+                currentCustomer = userViewModel.getCurrentCustomer().getValue();
+
+                Calendar c = Calendar.getInstance();
+                int hour = c.get(Calendar.HOUR_OF_DAY);
+                int minute = c.get(Calendar.MINUTE);
+                if(currentCustomer.getStatus().equals("AWAKE")){
+                    //Set to sleep
+                    userViewModel.setCustomerSleep(hour, minute);
+                    Customer customer = userViewModel.getCurrentCustomer().getValue();
+                    alarmFriendListAdapter.updateCustomer(customer);
+                    fabAdd.setImageResource(wake);
+                } else if(currentCustomer.getStatus().equals("SLEEPING")){
+                    //Set to wake up
+                    userViewModel.setCustomerWakeUp(hour, minute);
+                    Customer customer = userViewModel.getCurrentCustomer().getValue();
+                    alarmFriendListAdapter.updateCustomer(customer);
+                    fabAdd.setImageResource(sleep);
+                }
+                stateViewModel.setLastTimeClicked(System.currentTimeMillis());
+            }
         });
 
         //Disable all visibilities
@@ -117,16 +158,19 @@ public class Main extends Fragment {
         rvAlarmFriendList.setVisibility(View.GONE);
 
         //Enable visibilities for state when currentAlarm has already been created
-        if(hasAlarm){
-            buttonCreateAlarm.setVisibility(View.GONE);
-            labelAlarmTime.setVisibility(View.VISIBLE);
-            fabAdd.show();
-            rvAlarmFriendList.setVisibility(View.VISIBLE);
-        }
-        //Enable visibilities when currentAlarm has not been created
-        else {
-            buttonCreateAlarm.setVisibility(View.VISIBLE);
-        }
+        stateViewModel.getHasAlarm().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean hasAlarm) {
+                if(hasAlarm){
+                    buttonCreateAlarm.setVisibility(View.GONE);
+                    labelAlarmTime.setVisibility(View.VISIBLE);
+                    fabAdd.show();
+                    rvAlarmFriendList.setVisibility(View.VISIBLE);
+                } else {
+                    buttonCreateAlarm.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
         //Alarm Listeners to track current time of currentAlarm
         alarmViewModel.listenForAlarm(currentCustomer.getAlarmUid());
@@ -137,7 +181,7 @@ public class Main extends Fragment {
                     //Check if currentAlarm was not removed
                     if(!alarm.getAlarmUid().equals("-1")){
                         labelAlarmTime.setText(alarm.getTime().toString());
-                        hasAlarm = true;
+                        stateViewModel.setHasAlarm(true);
                     }
                 } else {
                     labelAlarmTime.setVisibility(View.GONE);

@@ -1,5 +1,8 @@
 package com.example.wakeuptogether.application.viewmodel;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModel;
+
 import com.example.wakeuptogether.business.model.Alarm;
 import com.example.wakeuptogether.business.model.Customer;
 import com.example.wakeuptogether.business.model.Time;
@@ -7,16 +10,13 @@ import com.example.wakeuptogether.business.repository.AlarmRepository;
 
 import java.util.List;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModel;
-
 public class AlarmViewModel extends ViewModel {
 
-    private LiveData<Alarm> alarmLiveData;
-    private AlarmRepository alarmRepository;
+    private final LiveData<Alarm> alarmLiveData;
+    private final AlarmRepository alarmRepository;
 
-    public AlarmViewModel(){
-        alarmRepository = AlarmRepository.getInstance();
+    public AlarmViewModel(AlarmRepository alarmRepository){
+        this.alarmRepository = alarmRepository;
         alarmLiveData = alarmRepository.getAlarm();
     }
 

@@ -9,7 +9,7 @@
       android:id="@+id/userProfile"
       android:layout_width="50dp"
       android:layout_height="50dp"
-      android:layout_marginStart="8dp"
+      android:layout_marginStart="4dp"
       android:layout_marginTop="8dp"
       android:layout_marginBottom="8dp"
       android:src="@drawable/tripanzia"
@@ -51,23 +51,12 @@
       app:layout_constraintStart_toStartOf="@+id/image_to_text_guideline"
       app:layout_constraintTop_toBottomOf="@+id/label_sleep_start" />
 
-  <TextView
-      android:id="@+id/label_status"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginStart="32dp"
-      android:layout_marginBottom="8dp"
-      android:text="Status:"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintStart_toStartOf="@+id/text_to_status_guideline"
-      app:layout_constraintTop_toTopOf="@+id/userProfile" />
-
   <androidx.constraintlayout.widget.Guideline
       android:id="@+id/text_to_status_guideline"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:orientation="vertical"
-      app:layout_constraintGuide_begin="262dp" />
+      app:layout_constraintGuide_begin="233dp" />
 
   <androidx.constraintlayout.widget.Guideline
       android:id="@+id/image_to_text_guideline"
@@ -82,13 +71,12 @@
       android:layout_height="wrap_content"
       app:layout_constraintBaseline_toBaselineOf="@+id/label_sleep_start"
       app:layout_constraintStart_toEndOf="@+id/label_sleep_start"
-      tools:text="21:56" />
+       />
 
   <TextView
       android:id="@+id/sleep_wake_answer"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="06:55"
       app:layout_constraintBaseline_toBaselineOf="@+id/label_sleep_wake"
       app:layout_constraintStart_toEndOf="@+id/label_sleep_wake" />
 
@@ -96,8 +84,13 @@
       android:id="@+id/status_answer"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginStart="4dp"
-      app:layout_constraintBaseline_toBaselineOf="@+id/label_status"
-      app:layout_constraintStart_toEndOf="@+id/label_status"
+      android:layout_marginStart="8dp"
+      android:layout_marginTop="8dp"
+      android:layout_marginEnd="8dp"
+      android:layout_marginBottom="8dp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="@+id/text_to_status_guideline"
+      app:layout_constraintTop_toTopOf="parent"
       tools:text="Awake" />
 </androidx.constraintlayout.widget.ConstraintLayout>

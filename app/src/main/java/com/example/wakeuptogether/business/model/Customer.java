@@ -13,6 +13,8 @@ public class Customer {
     private int streaks;
     private List<String> friends;
     private List<String> pendingFriends;
+    private Time wakeUpTime;
+    private Time sleepTime;
 
     public Customer() {}
 
@@ -25,6 +27,8 @@ public class Customer {
         this.streaks = streaks;
         this.friends = friends;
         this.pendingFriends = pendingFriends;
+        wakeUpTime = new Time(0, 0);
+        sleepTime = new Time(0, 0);
     }
 
     public String getUid() {
@@ -42,6 +46,8 @@ public class Customer {
     public String getStatus() {
         return status;
     }
+
+    public void setStatus(String status) {this.status = status;}
 
     public String getBio() {
         return bio;
@@ -65,5 +71,21 @@ public class Customer {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public Time getWakeUpTime() {
+        return wakeUpTime;
+    }
+
+    public void setWakeUpTime(Time wakeUpTime) {
+        this.wakeUpTime = wakeUpTime;
+    }
+
+    public Time getSleepTime() {
+        return sleepTime;
+    }
+
+    public void setSleepTime(Time sleepTime) {
+        this.sleepTime = sleepTime;
     }
 }

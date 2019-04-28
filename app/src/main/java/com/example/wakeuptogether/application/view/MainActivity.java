@@ -1,20 +1,5 @@
 package com.example.wakeuptogether.application.view;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
@@ -22,23 +7,44 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
+
 import com.example.wakeuptogether.R;
+import com.example.wakeuptogether.application.NotificationHelper;
 import com.example.wakeuptogether.application.viewmodel.AlarmViewModel;
+import com.example.wakeuptogether.application.viewmodel.StateViewModel;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
+import com.example.wakeuptogether.application.viewmodel.ViewModelFactory;
 import com.example.wakeuptogether.business.model.Customer;
+import com.example.wakeuptogether.utils.InjectorUtils;
+import com.example.wakeuptogether.utils.PreferenceUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
-    boolean isAuth = false;
-    boolean isFindFriend = false;
-    boolean canLeaveAlarm = false;
+    private NotificationHelper notificationHelper;
+    private PreferenceUtils preferenceUtils;
 
     public static NavController navController;
+    public static ViewModelFactory viewModelFactory;
     private AppBarConfiguration appBarConfiguration;
 
     private UserViewModel userViewModel;
     private AlarmViewModel alarmViewModel;
+    private StateViewModel stateViewModel;
 
     private MenuItem logoutItem;
     private MenuItem findFriendItem;
@@ -53,6 +59,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        //Setup viewmodels
+        viewModelFactory = InjectorUtils.provideViewModelFactory(getApplicationContext());
+        userViewModel = ViewModelProviders.of(this, viewModelFactory).get(UserViewModel.class);
+        alarmViewModel = ViewModelProviders.of(this, viewModelFactory).get(AlarmViewModel.class);
+        stateViewModel = ViewModelProviders.of(this).get(StateViewModel.class);
+
+        //Setup PreferenceUtilsHelper
+        preferenceUtils = PreferenceUtils.getInstance(this);
+
+        //Setup NotificationHelper
+        notificationHelper = NotificationHelper.getInstance(this);
+
         //Setup toolbar
         setSupportActionBar(toolbar);
         toolbar.setTitleTextColor(Color.WHITE);
@@ -64,8 +82,10 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(toolbar, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
 
-        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
-        alarmViewModel = ViewModelProviders.of(this).get(AlarmViewModel.class);
+
+        if(!preferenceUtils.getEmail().equals("") && !preferenceUtils.getPassword().equals("")){
+            userViewModel.signIn(preferenceUtils.getEmail(), preferenceUtils.getPassword());
+        }
 
         userViewModel.getCurrentCustomer().observe(this, new Observer<Customer>() {
             @Override
@@ -88,24 +108,26 @@ public class MainActivity extends AppCompatActivity {
             public void onDestinationChanged(@NonNull NavController controller, @NonNull NavDestination destination, @Nullable Bundle arguments) {
                 if(destination.getId() == R.id.main){
                     bottomNavigationView.setVisibility(View.VISIBLE);
-                    isAuth = true;
-                    isFindFriend = false;
+                    stateViewModel.setAuth(true);
+                    stateViewModel.setFindFriend(false);
                     //Check if user has alarmUid, if so then enable Leave Alarm menu item
-                    if(!userViewModel.getCurrentCustomer().getValue().getAlarmUid().equals("-1"))
-                        canLeaveAlarm = true;
+                    if(userViewModel.getCurrentCustomer().getValue() != null){
+                        if(!userViewModel.getCurrentCustomer().getValue().getAlarmUid().equals("-1"))
+                            stateViewModel.setCanLeaveAlarm(true);
+                    }
                 } else if(destination.getId() == R.id.login){
-                    isAuth = false;
-                    canLeaveAlarm = false;
+                    stateViewModel.setAuth(false);
+                    stateViewModel.setCanLeaveAlarm(false);
                     bottomNavigationView.setVisibility(View.INVISIBLE);
                 } else if(destination.getId() == R.id.register){
-                    isAuth = false;
-                    canLeaveAlarm = false;
+                    stateViewModel.setAuth(false);
+                    stateViewModel.setCanLeaveAlarm(false);
                     bottomNavigationView.setVisibility(View.INVISIBLE);
                 } else if(destination.getId() == R.id.findFriend){
-                    isFindFriend = true;
-                    canLeaveAlarm = false;
+                    stateViewModel.setFindFriend(true);
+                    stateViewModel.setCanLeaveAlarm(false);
                 } else {
-                    canLeaveAlarm = false;
+                    stateViewModel.setCanLeaveAlarm(false);
                 }
 
 
@@ -132,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         invalidateOptionsMenu();
-        if(isAuth){
+        if(stateViewModel.isAuth()){
             logoutItem.setVisible(true);
             findFriendItem.setVisible(true);
         } else {
@@ -140,13 +162,13 @@ public class MainActivity extends AppCompatActivity {
             findFriendItem.setVisible(false);
         }
 
-        if(isFindFriend){
+        if(stateViewModel.isFindFriend()){
             findFriendItem.setVisible(false);
-        } else if(isAuth) {
+        } else if(stateViewModel.isAuth()) {
             findFriendItem.setVisible(true);
         }
 
-        if(canLeaveAlarm){
+        if(stateViewModel.isCanLeaveAlarm()){
             leaveAlarmItem.setVisible(true);
         } else {
             leaveAlarmItem.setVisible(false);
@@ -163,16 +185,16 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_logout:
                 navController.navigate(R.id.action_logout);
-                isAuth = false;
+                stateViewModel.setAuth(false);
                 userViewModel.signOut();
                 return true;
             case R.id.action_find_friend:
                     navController.navigate(R.id.action_global_findFriend);
-                    isFindFriend = true;
+                    stateViewModel.setFindFriend(true);
                     return true;
             case R.id.action_leave_alarm:
                 alarmViewModel.leaveAlarm(userViewModel.getCurrentCustomer().getValue().getAlarmUid());
-                canLeaveAlarm = false;
+                stateViewModel.setCanLeaveAlarm(false);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -182,6 +204,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        //userViewModel.signOut();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         userViewModel.signOut();
     }
 

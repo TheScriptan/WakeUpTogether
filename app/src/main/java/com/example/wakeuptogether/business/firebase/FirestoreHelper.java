@@ -2,11 +2,15 @@ package com.example.wakeuptogether.business.firebase;
 
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import com.example.wakeuptogether.business.model.Alarm;
 import com.example.wakeuptogether.business.model.Customer;
 import com.example.wakeuptogether.business.model.Time;
 import com.example.wakeuptogether.utils.AppExecutors;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -23,12 +27,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-
 public class FirestoreHelper {
 
     private static final String TAG = "FirebaseTag";
+
 
     private ListenerRegistration currentCustomerListener;
     private ListenerRegistration alarmListener;
@@ -86,7 +88,7 @@ public class FirestoreHelper {
     }
 
     /*
-     * Current User Management in FirebaseAuthHelper and MainActivity
+     * Current User Management in MainActivity
      */
 
     public void addCurrentCustomer(Customer customer, String uid){
@@ -164,15 +166,16 @@ public class FirestoreHelper {
 
     public void addPendingCustomer(String pendingFriend){
         //Add currentUser UID to new friend's pendingFriend list
-        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         userRef.document(pendingFriend).update("pendingFriends", FieldValue.arrayUnion(currentUser));
     }
 
     public void acceptPendingCustomer(String pendingFriend){
-        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         userRef.document(currentUser).update("pendingFriends", FieldValue.arrayRemove(pendingFriend));
         userRef.document(currentUser).update("friends", FieldValue.arrayUnion(pendingFriend));
         userRef.document(pendingFriend).update("friends", FieldValue.arrayUnion(currentUser));
+
         //Todo: Temporary solution to update livedata. Should create CustomerList class and update everything
         //Refreshes when user accepts a friend. Refreshes pendingFriend list and friendList instantly
         List<Customer> tempPending = pendingCustomerListMutableLiveData.getValue();
@@ -189,7 +192,7 @@ public class FirestoreHelper {
     }
 
     public void refusePendingCustomer(String pendingFriend){
-        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         userRef.document(currentUser).update("pendingFriends", FieldValue.arrayRemove(pendingFriend));
     }
 
@@ -230,7 +233,7 @@ public class FirestoreHelper {
     }
 
     public void removeFriend(String friend){
-        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         userRef.document(currentUser).update("friends", FieldValue.arrayRemove(friend));
         userRef.document(friend).update("friends", FieldValue.arrayRemove(currentUser));
         List<Customer> tempFriend = friendCustomerListMutableLiveData.getValue();
@@ -251,7 +254,7 @@ public class FirestoreHelper {
      */
 
     public void addAlarm(Time time){
-        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DocumentReference newAlarmRef = alarmRef.document();
         List<String> customers = new ArrayList<>();
         customers.add(currentUser);
@@ -274,7 +277,7 @@ public class FirestoreHelper {
     }
 
     public void leaveAlarm(String alarmUid){
-        String currentUser = FirebaseAuthHelper.getInstance().getCurrentUser().getUid();
+        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         Alarm alarm = alarmMutableLiveData.getValue();
         userRef.document(currentUser).update("alarmUid", "-1");
         if(alarm == null){
@@ -350,5 +353,33 @@ public class FirestoreHelper {
 
     public LiveData<List<Customer>> getAlarmCustomerList(){
         return alarmCustomerListMutableLiveData;
+    }
+
+    /*
+     *  Sleeping and waking up functionality
+     */
+
+    public void setCustomerWakeUp(int hour, int minute){
+        Customer customer = customerMutableLiveData.getValue();
+        if(customer != null){
+            customer.setStatus("AWAKE");
+            Time newTime = new Time(hour, minute);
+            customer.setWakeUpTime(newTime);
+            customerMutableLiveData.setValue(customer);
+            userRef.document(customer.getUid()).update("wakeUpTime", newTime);
+            userRef.document(customer.getUid()).update("status", "AWAKE");
+        }
+    }
+
+    public void setCustomerSleep(int hour, int minute){
+        Customer customer = customerMutableLiveData.getValue();
+        if(customer != null){
+            customer.setStatus("SLEEPING");
+            Time newTime = new Time(hour, minute);
+            customer.setSleepTime(newTime);
+            customerMutableLiveData.setValue(customer);
+            userRef.document(customer.getUid()).update("sleepTime", newTime);
+            userRef.document(customer.getUid()).update("status", "SLEEPING");
+        }
     }
 }
