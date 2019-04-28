@@ -1,6 +1,9 @@
 package com.example.wakeuptogether.application.view;
 
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.wakeuptogether.R;
+import com.example.wakeuptogether.application.NotificationHelper;
 import com.example.wakeuptogether.application.adapter.AlarmFriendListAdapter;
 import com.example.wakeuptogether.application.viewmodel.AlarmViewModel;
 import com.example.wakeuptogether.application.viewmodel.StateViewModel;
@@ -29,6 +33,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import butterknife.BindView;
@@ -182,6 +187,24 @@ public class Main extends Fragment {
                     if(!alarm.getAlarmUid().equals("-1")){
                         labelAlarmTime.setText(alarm.getTime().toString());
                         stateViewModel.setHasAlarm(true);
+                        //Todo: Extract AlarmManager from here to a better place
+                        Calendar calendar = Calendar.getInstance();
+                        int minute = alarm.getTime().getMinute();
+                        int hour = alarm.getTime().getHour();
+                        //Todo: Add +1 here to the day to create alarm for tomorrow
+                        int day = calendar.get(Calendar.DATE);
+                        int month = calendar.get(Calendar.MONTH);
+                        int year = calendar.get(Calendar.YEAR);
+                        Calendar time = new GregorianCalendar(year, month, day, hour, minute);
+                        //Check if alarm time is in future compared to current time so notifications don't spam
+                        if(time.getTimeInMillis() > calendar.getTimeInMillis()){
+
+                            AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+                            long triggerTime = time.getTimeInMillis();
+                            PendingIntent pd = NotificationHelper.getInstance(getContext()).getDeliverWakeUpPendingIntent();
+                            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pd);
+                        }
+
                     }
                 } else {
                     labelAlarmTime.setVisibility(View.GONE);

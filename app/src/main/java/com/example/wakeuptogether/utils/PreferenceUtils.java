@@ -8,6 +8,7 @@ public class PreferenceUtils {
 
     private static final String USER_EMAIL = "USER_EMAIL";
     private static final String USER_PASSWORD = "USER_PASSWORD";
+    private static final String USER_UID = "USER_UID";
 
     private static PreferenceUtils sInstance;
     private Context context;
@@ -16,7 +17,7 @@ public class PreferenceUtils {
         this.context = context;
         //When application is installed at the first time, set user data to "" "" so SharedPrefs don't have null
         if (getEmail() == null || getPassword() == null) {
-            saveUserData("", "");
+            saveUserData("", "", "");
         }
     }
 
@@ -31,11 +32,12 @@ public class PreferenceUtils {
         return sInstance;
     }
 
-    public void saveUserData(String email, String password) {
+    public void saveUserData(String email, String password, String uid) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor prefsEditor = prefs.edit();
         prefsEditor.putString(USER_EMAIL, email);
         prefsEditor.putString(USER_PASSWORD, password);
+        prefsEditor.putString(USER_UID, uid);
         prefsEditor.apply();
     }
 
@@ -49,11 +51,17 @@ public class PreferenceUtils {
         return prefs.getString(USER_PASSWORD, null);
     }
 
+    public String getUserUid(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(USER_UID, null);
+    }
+
     public void removeData() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor prefsEditor = prefs.edit();
         prefsEditor.putString(USER_EMAIL, "");
         prefsEditor.putString(USER_PASSWORD, "");
+        prefsEditor.putString(USER_UID, "");
         prefsEditor.apply();
     }
 }

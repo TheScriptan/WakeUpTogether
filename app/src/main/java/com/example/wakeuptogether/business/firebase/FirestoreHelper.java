@@ -11,6 +11,7 @@ import com.example.wakeuptogether.business.model.Time;
 import com.example.wakeuptogether.utils.AppExecutors;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -361,21 +362,27 @@ public class FirestoreHelper {
 
     public void setCustomerWakeUp(int hour, int minute){
         Customer customer = customerMutableLiveData.getValue();
+        Time newTime = new Time(hour, minute);
         if(customer != null){
             customer.setStatus("AWAKE");
-            Time newTime = new Time(hour, minute);
             customer.setWakeUpTime(newTime);
             customerMutableLiveData.setValue(customer);
             userRef.document(customer.getUid()).update("wakeUpTime", newTime);
             userRef.document(customer.getUid()).update("status", "AWAKE");
+        } else {
+            FirebaseAuth auth = FirebaseAuth.getInstance();
+            FirebaseUser user = auth.getCurrentUser();
+            String uid = user.getUid();
+            userRef.document(uid).update("wakeUpTime", newTime);
+            userRef.document(uid).update("status", "AWAKE");
         }
     }
 
     public void setCustomerSleep(int hour, int minute){
         Customer customer = customerMutableLiveData.getValue();
+        Time newTime = new Time(hour, minute);
         if(customer != null){
             customer.setStatus("SLEEPING");
-            Time newTime = new Time(hour, minute);
             customer.setSleepTime(newTime);
             customerMutableLiveData.setValue(customer);
             userRef.document(customer.getUid()).update("sleepTime", newTime);

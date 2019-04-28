@@ -8,6 +8,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        NotificationHelper.getInstance(context).deliverNotification(context);
+        NotificationHelper.getInstance(context).deliverWakeUpNotification(context);
     }
 }

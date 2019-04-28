@@ -10,9 +10,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <receiver
-            android:name=".application.AlarmReceiver"
+            android:name=".application.WakeUpReceiver"
             android:enabled="true"
             android:exported="false"></receiver>
+        <receiver
+            android:name=".application.AlarmReceiver"
+            android:enabled="true"
+            android:exported="false" />
 
         <activity android:name=".application.view.MainActivity">
             <intent-filter>

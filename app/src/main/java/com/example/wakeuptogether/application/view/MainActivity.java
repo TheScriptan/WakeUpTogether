@@ -1,5 +1,6 @@
 package com.example.wakeuptogether.application.view;
 
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
@@ -21,6 +22,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.wakeuptogether.R;
 import com.example.wakeuptogether.application.NotificationHelper;
+import com.example.wakeuptogether.application.WakeUpReceiver;
 import com.example.wakeuptogether.application.viewmodel.AlarmViewModel;
 import com.example.wakeuptogether.application.viewmodel.StateViewModel;
 import com.example.wakeuptogether.application.viewmodel.UserViewModel;
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private MenuItem findFriendItem;
     private MenuItem leaveAlarmItem;
 
+    private WakeUpReceiver wakeUpReceiver;
+
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.bottomNavigationView) BottomNavigationView bottomNavigationView;
 
@@ -59,17 +63,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        //Setup NotificationHelper
+        notificationHelper = NotificationHelper.getInstance(this);
+
         //Setup viewmodels
         viewModelFactory = InjectorUtils.provideViewModelFactory(getApplicationContext());
         userViewModel = ViewModelProviders.of(this, viewModelFactory).get(UserViewModel.class);
         alarmViewModel = ViewModelProviders.of(this, viewModelFactory).get(AlarmViewModel.class);
         stateViewModel = ViewModelProviders.of(this).get(StateViewModel.class);
 
+        //Setup receivers
+        wakeUpReceiver = new WakeUpReceiver();
+        registerReceiver(wakeUpReceiver, new IntentFilter(NotificationHelper.ACTION_WAKE_UP));
+
         //Setup PreferenceUtilsHelper
         preferenceUtils = PreferenceUtils.getInstance(this);
 
-        //Setup NotificationHelper
-        notificationHelper = NotificationHelper.getInstance(this);
 
         //Setup toolbar
         setSupportActionBar(toolbar);

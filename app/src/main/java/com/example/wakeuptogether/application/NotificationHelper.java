@@ -21,9 +21,11 @@ public class NotificationHelper {
 
     private NotificationManager notificationManager;
 
-    private static final int NOTIFICATION_WAKE_UP = 0;
+    public static final String ACTION_WAKE_UP = "com.example.wakeuptogether.ACTION_WAKE_UP";
+
+    public static final int NOTIFICATION_WAKE_UP = 0;
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
-    private PendingIntent wakeUpPendingIntent;
+    private PendingIntent deliverWakeUpPendingIntent;
 
     private NotificationHelper(Context context){
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -31,7 +33,7 @@ public class NotificationHelper {
 
         //Create AlarmReceiver
         Intent notifyIntent = new Intent(context, AlarmReceiver.class);
-        wakeUpPendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_WAKE_UP, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        deliverWakeUpPendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_WAKE_UP, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public static NotificationHelper getInstance(Context context){
@@ -46,11 +48,19 @@ public class NotificationHelper {
     }
 
     //Testing notification
-    public void deliverNotification(Context context){
+    public void deliverWakeUpNotification(Context context){
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.HOUR, 1);
+
+        //Create WakeUpReceiver
+        Intent wakeUpIntent = new Intent(context, WakeUpReceiver.class);
+        wakeUpIntent.setAction(ACTION_WAKE_UP);
+        PendingIntent wakeUpActionPendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_WAKE_UP, wakeUpIntent, PendingIntent.FLAG_ONE_SHOT);
+
         NotificationCompat.Builder notification = getNotificationBuilder(context,
-                "Testing Notification", "This is my testing notification", NOTIFICATION_WAKE_UP);
+                "It is time to wake up!", "Notify your friends you woke up in time!", NOTIFICATION_WAKE_UP);
+        NotificationCompat.Action action = new NotificationCompat.Action.Builder(R.mipmap.ic_launcher, "Wake Up", wakeUpActionPendingIntent).build();
+        notification.addAction(action);
         notificationManager.notify(NOTIFICATION_WAKE_UP, notification.build());
     }
 
@@ -83,7 +93,7 @@ public class NotificationHelper {
         }
     }
 
-    public PendingIntent getWakeUpPendingIntent(){
-        return wakeUpPendingIntent;
+    public PendingIntent getDeliverWakeUpPendingIntent(){
+        return deliverWakeUpPendingIntent;
     }
 }

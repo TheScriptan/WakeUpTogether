@@ -57,7 +57,7 @@ public class FirebaseAuthHelper {
             currentUser = authResult.getUser();
             FirestoreHelper.getInstance().addCurrentCustomer(customer, currentUser.getUid());
             FirestoreHelper.getInstance().listenForCurrentCustomer(currentUser.getUid());
-            preferenceUtils.saveUserData(email, password);
+            preferenceUtils.saveUserData(email, password, currentUser.getUid());
         })
                 .addOnFailureListener(e -> Log.v(TAG, e.toString()));
     }
@@ -69,7 +69,7 @@ public class FirebaseAuthHelper {
             currentUser = authResult.getUser();
             FirestoreHelper.getInstance().updateCurrentCustomerLiveData(currentUser.getUid());
             FirestoreHelper.getInstance().listenForCurrentCustomer(currentUser.getUid());
-            preferenceUtils.saveUserData(email, password);
+            preferenceUtils.saveUserData(email, password, currentUser.getUid());
         })
                 .addOnFailureListener(e -> Log.v(TAG, e.toString()));
     }
